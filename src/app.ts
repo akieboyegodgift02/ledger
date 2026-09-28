@@ -1,12 +1,23 @@
 import Fastify from "fastify";
+import dotenv from "dotenv";
+import postgres from "postgres";
+
+dotenv.config();
+
+const sql = postgres(process.env.DATABASE_URL!);
+
 
 const app = Fastify({
     logger: true 
 });
 
 app.get("/health", async() => {
-    console.log("Health check endpoint called");
-    return { status: "ok" }
+    const result = await sql`SELECT 1 AS connected`;
+
+    return { 
+        status: "ok",
+        database: result[0],
+    }
 });
 
 const start = async () => {
