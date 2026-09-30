@@ -94,3 +94,41 @@ Testing - Vitest
 API docs - OpenAI
 Load testing - k6 
 Fraud Intelligence - Python
+
+# SYSTEM ARCHITECTURE 
+
+                         CLIENT
+                           │
+                           ▼
+                    ┌─────────────┐
+                    │   Fastify   │
+                    │     API     │
+                    └──────┬──────┘
+                           │
+             ┌─────────────┼──────────────┐
+             │             │              │
+             ▼             ▼              ▼
+        Payments        Wallets        Fraud
+         Module          Module         Module
+             │             │              │
+             └─────────────┼──────────────┘
+                           ▼
+                     Ledger Module
+                           │
+                           ▼
+                      PostgreSQL
+                           │
+                           │
+                    ┌──────┴──────┐
+                    ▼             ▼
+                 Ledger       Outbox
+                 Tables       Events
+                                  │
+                                  ▼
+                              Queue
+                                  │
+                     ┌────────────┼───────────┐
+                     ▼            ▼           ▼
+                 Fraud         Email      Analytics
+                 Worker        Worker       Worker
+
