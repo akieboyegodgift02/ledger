@@ -40,7 +40,7 @@ User
 
 accounts
 ├── id
-│   └── UUID PRIMARY KEY
+│   └── INTEGER PRIMARY KEY
 │
 ├── user_id
 │   ├── UUID

@@ -1,10 +1,10 @@
 import Fastify from "fastify";
-import dotenv from "dotenv";
+import "dotenv/config";
 import postgres from "postgres";
 
 import { transferRoutes } from "./modules/transfer/transfer.route.js";
+import { depositRoutes } from "./modules/deposit/deposit.route.js";
 
-dotenv.config();
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL is not defined");
@@ -28,6 +28,8 @@ app.get("/health", async () => {
 });
 
 await app.register(transferRoutes);
+await app.register(depositRoutes);
+
 
 const start = async () => {
   try {

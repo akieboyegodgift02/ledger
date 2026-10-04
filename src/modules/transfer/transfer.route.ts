@@ -10,8 +10,8 @@ export async function transferRoutes(app: FastifyInstance) {
     };
 
     const result = await createTransfer(
-      String(body.fromWalletId),
-      String(body.toWalletId),
+      Number(body.fromWalletId),
+      Number(body.toWalletId),
       BigInt(body.amount),
     );
 
