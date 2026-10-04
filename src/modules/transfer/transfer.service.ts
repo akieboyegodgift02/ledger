@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { sql } from "../../db/index.js";
 import postgres, {type TransactionSql} from "postgres"
+import { InsufficientBalanceError } from "../../errors/insufficient-balance-error.js";
 
 export async function createTransfer (
     //function signature
@@ -91,7 +92,7 @@ export async function createTransfer (
         const currentBalance = BigInt(balance?.balance ?? "0");
 
         if (currentBalance < amount) {
-            throw new Error ("Insufficient balance")
+            throw new InsufficientBalanceError();
         }
 
         const [transaction] = await tx `
@@ -127,6 +128,7 @@ export async function createTransfer (
                 ${(-amount).toString()}
             )
         `;
+        
 
         await tx `
             INSERT INTO ledger_entries (

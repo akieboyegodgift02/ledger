@@ -1,9 +1,10 @@
-import Fastify from "fastify";
+import Fastify, {type FastifyError } from "fastify";
 import "dotenv/config";
 import postgres from "postgres";
 
 import { transferRoutes } from "./modules/transfer/transfer.route.js";
 import { depositRoutes } from "./modules/deposit/deposit.route.js";
+import { InsufficientBalanceError } from "./errors/insufficient-balance-error.js";
 
 
 if (!process.env.DATABASE_URL) {
@@ -14,6 +15,42 @@ const sql = postgres(process.env.DATABASE_URL);
 
 const app = Fastify({
   logger: true,
+});
+
+app.addHook("onRequest", async (request)=>{
+  request.log.info({
+    method: request.method,
+    url: request.url,
+  }, "Incoming request")
+})
+
+app.setErrorHandler((error: FastifyError, request, reply)=>{
+  if (error.validation) {
+    return reply.status(400).send({
+      statusCode: 400,
+      error: "Bad Request",
+      message: "Invalid request",
+    });
+  }
+
+
+  if (error instanceof InsufficientBalanceError) {
+    return reply.status(409).send({
+      statusCode: 409,
+      error: "Conflict",
+      message: error.message
+
+    });
+  }
+  
+  request.log.error(error);
+
+  return reply.status(500).send({
+    statusCode: 500,
+    error: "Internal Server Error",
+    message: "Internal server error",
+  });
+
 });
 
 app.get("/health", async () => {

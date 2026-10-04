@@ -132,3 +132,34 @@ Fraud Intelligence - Python
                  Fraud         Email      Analytics
                  Worker        Worker       Worker
 
+
+
+# ERROR HANDLERS
+
+Domain Error                  HTTP Response
+────────────────────────────────────────────
+InsufficientBalanceError  →   409 Conflict
+WalletNotFoundError       →   404 Not Found
+WalletClosedError         →   409 Conflict
+CurrencyMismatchError     →   409 Conflict
+Unknown Error             →   500 Internal Server Error
+
+
+# DATA INTEGRITY LAYERS
+
+                    REQUEST
+                       ↓
+              ┌─────────────────┐
+              │  JSON Schema    │
+              │  Shape + types  │
+              └────────┬────────┘
+                       ↓
+              ┌─────────────────┐
+              │ Business Logic  │
+              │ Business rules  │
+              └────────┬────────┘
+                       ↓
+              ┌─────────────────┐
+              │ Database        │
+              │ DB constraints  │
+              └─────────────────┘
