@@ -1,4 +1,4 @@
-import { sql } from "../../db/index.js";
+import { sql } from "../../../db/index.js";
 import { randomUUID } from "node:crypto";
 
 export async function createDeposit(

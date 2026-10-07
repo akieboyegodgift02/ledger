@@ -1,11 +1,12 @@
 import { randomUUID } from "node:crypto";
-import { sql } from "../../db/index.js";
+import { sql } from "../../../db/index.js";
 import postgres, {type TransactionSql} from "postgres"
-import { InsufficientBalanceError } from "../../errors/insufficient-balance-error.js";
+import { InsufficientBalanceError } from "../../../errors/insufficient-balance-error.js";
+import { WalletOwnershipError } from "../../../errors/wallet-ownership-error.js";
 
 export async function createTransfer (
     //function signature
-
+    userId: number,
     fromWalletId: number,
     toWalletId: number,
     amount: bigint
@@ -35,7 +36,7 @@ export async function createTransfer (
         for (const walletId of walletIds) {
 
             const [wallet] = await tx `
-                SELECT id, currency, status
+                SELECT id, account_id, currency, status
                 FROM wallets
                 WHERE id = ${walletId}
                 FOR UPDATE
@@ -68,6 +69,10 @@ export async function createTransfer (
 
         if (!senderWallet || !recipientWallet) {
             throw new Error ("One or both wallets not found")
+        }
+
+        if (Number(senderWallet.account_id) !== userId) {
+            throw new WalletOwnershipError;
         }
 
         // Validate state

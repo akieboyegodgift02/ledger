@@ -1,9 +1,17 @@
 import Fastify, {type FastifyError } from "fastify";
 import "dotenv/config";
 import postgres from "postgres";
+import fastifyJwt from "@fastify/jwt";
 
-import { transferRoutes } from "./modules/transfer/transfer.route.js";
-import { depositRoutes } from "./modules/deposit/deposit.route.js";
+// Error Handlers
+import { EmailAlreadyExistsError } from "./errors/email-already-exists-error.js";
+import { InvalidCredentialsError } from "./errors/invalid-credentials-error.js";
+import { WalletOwnershipError } from "./errors/wallet-ownership-error.js";
+
+// Routes
+import { authRoutes } from "./modules/auth/auth.route.js"
+import { transferRoutes } from "./modules/api/transfer/transfer.route.js";
+import { depositRoutes } from "./modules/api/deposit/deposit.route.js";
 import { InsufficientBalanceError } from "./errors/insufficient-balance-error.js";
 
 
@@ -16,6 +24,10 @@ const sql = postgres(process.env.DATABASE_URL);
 const app = Fastify({
   logger: true,
 });
+
+if(!process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET is not defined");
+};
 
 app.addHook("onRequest", async (request)=>{
   request.log.info({
@@ -42,6 +54,30 @@ app.setErrorHandler((error: FastifyError, request, reply)=>{
 
     });
   }
+
+  if (error instanceof EmailAlreadyExistsError) {
+    return reply.status(409).send({
+      statusCode: 409,
+      error: "Conflict",
+      message: error.message,
+    })
+  }
+
+  if (error instanceof InvalidCredentialsError) {
+    return reply.status(401).send({
+      statusCode: 401,
+      error: "Unauthorized",
+      message: error.message,
+    })
+  }
+
+  if (error instanceof WalletOwnershipError) {
+    return reply.status(403).send({
+      statusCode: 403,
+      error: "Forbidden",
+      message: error.message,
+    });
+  }
   
   request.log.error(error);
 
@@ -64,9 +100,13 @@ app.get("/health", async () => {
   };
 });
 
+await app.register(authRoutes);
 await app.register(transferRoutes);
 await app.register(depositRoutes);
 
+await app.register(fastifyJwt,{
+  secret: process.env.JWT_SECRET,
+});
 
 const start = async () => {
   try {

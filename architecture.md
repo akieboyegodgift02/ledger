@@ -163,3 +163,28 @@ Unknown Error             →   500 Internal Server Error
               │ Database        │
               │ DB constraints  │
               └─────────────────┘
+
+# AUTHENTICATION ARCHITECTURE
+
+                REGISTER
+                    ↓
+              password
+                    ↓
+            hash password
+                    ↓
+              users table
+
+
+                  LOGIN
+                    ↓
+           email + password
+                    ↓
+          verify password hash
+                    ↓
+              authenticated
+                    ↓
+               JWT token
+                    ↓
+          future API requests
+
+Password Hasher: Argon2 
