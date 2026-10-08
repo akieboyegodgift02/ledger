@@ -13,6 +13,8 @@ import { authRoutes } from "./modules/auth/auth.route.js"
 import { transferRoutes } from "./modules/api/transfer/transfer.route.js";
 import { depositRoutes } from "./modules/api/deposit/deposit.route.js";
 import { InsufficientBalanceError } from "./errors/insufficient-balance-error.js";
+import { walletRoutes } from "./modules/api/wallet/wallet.route.js";
+import { WalletNotFoundError } from "./errors/wallet-not-found-error.js";
 
 
 if (!process.env.DATABASE_URL) {
@@ -78,6 +80,14 @@ app.setErrorHandler((error: FastifyError, request, reply)=>{
       message: error.message,
     });
   }
+
+  if (error instanceof WalletNotFoundError) {
+    return reply.status(404).send({
+      statusCode: 404,
+      error: "Not Found",
+      message: error.message,
+    })
+  }
   
   request.log.error(error);
 
@@ -103,6 +113,7 @@ app.get("/health", async () => {
 await app.register(authRoutes);
 await app.register(transferRoutes);
 await app.register(depositRoutes);
+await app.register(walletRoutes);
 
 await app.register(fastifyJwt,{
   secret: process.env.JWT_SECRET,

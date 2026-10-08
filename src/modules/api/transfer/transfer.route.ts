@@ -14,6 +14,17 @@ export async function transferRoutes(app: FastifyInstance) {
     {
       preHandler: authenticate,
       schema: {
+        headers: {
+          type: "object",
+          required: ["idempotency-key"],
+          properties: {
+            "idempotency-key": {
+              type: "string",
+              minLength: 1,
+            },
+          },
+        },
+
         body: {
           type: "object",
           required: ["fromWalletId", "toWalletId", "amount"],
@@ -25,6 +36,7 @@ export async function transferRoutes(app: FastifyInstance) {
         },
       },
     },
+
     async (request, reply) => {
       const body = request.body as {
         fromWalletId: number;
@@ -34,11 +46,14 @@ export async function transferRoutes(app: FastifyInstance) {
 
       const user = request.user as AuthUser;
 
+      const idempotencyKey = request.headers["idempotency-key"] as string;
+
       const result = await createTransfer(
         Number(user.sub),
         Number(body.fromWalletId),
         Number(body.toWalletId),
         BigInt(body.amount),
+        idempotencyKey,
       );
 
       return reply.code(201).send(result);
