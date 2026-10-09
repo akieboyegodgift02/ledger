@@ -53,7 +53,8 @@ export async function recoverStaleJobs() {
                     UPDATE jobs
                     SET
                         status = 'PENDING',
-                        available_at = NOW(),
+                        attempts = 0,
+                        available_at = NOW() + INTERVAL '5 seconds',
                         locked_at = NULL
                     WHERE id = ${job.id}
                 `;
