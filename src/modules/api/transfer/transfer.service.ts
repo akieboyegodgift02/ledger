@@ -84,6 +84,12 @@ export async function createTransfer (
             if (existingTransaction) {
                 return existingTransaction;
             }
+
+            console.log({
+                authenticatedUserId: userId,
+                fromWalletId,
+                senderWalletOwnerId: Number(senderWallet.account_id),
+            });
             
             if (Number(senderWallet.account_id) !== userId) {
                 throw new WalletOwnershipError;
@@ -177,6 +183,20 @@ export async function createTransfer (
             if(!completedTransaction) {
                 throw new Error("Failed to complete transfer transaction");
             }
+
+            await tx`
+                INSERT INTO jobs (
+                    type,
+                    payload
+                )
+                VALUES (
+                    'SEND_TRANSFER_NOTIFICATION',
+                    ${sql.json({
+                        transactionId: completedTransaction.id,
+                        walletId: toWalletId,
+                    })}
+                )
+            `;
 
             return completedTransaction;
 
